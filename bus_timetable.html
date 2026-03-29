@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>久喜事業所 送迎バス時刻表</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3350;
+    --accent: #4f8ef7;
+    --accent2: #f74f6a;
+    --text: #e8eaf6;
+    --text-dim: #8892b0;
+    --changed: #f74f6a;
+    --teijicolor: #34d399;
+    --unkyu: #6b7280;
+    --large: #60a5fa;
+    --medium: #a78bfa;
+    --micro: #fb923c;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans JP', sans-serif;
+    min-height: 100vh;
+    padding-bottom: 3rem;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #1a1d27 0%, #0f1117 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 1.25rem 1rem 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+  }
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .logo-icon {
+    width: 32px;
+    height: 32px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+
+  .logo-text {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    font-weight: 500;
+    line-height: 1.3;
+  }
+
+  .logo-text strong {
+    color: var(--text);
+    display: block;
+    font-size: 0.85rem;
+  }
+
+  .badge {
+    background: var(--accent2);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.2rem 0.5rem;
+    border-radius: 20px;
+    letter-spacing: 0.05em;
+  }
+
+  .header-sub {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* Tab navigation */
+  .tabs {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+
+  .tab {
+    flex-shrink: 0;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    color: var(--text-dim);
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .tab.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+
+  /* Section */
+  .section {
+    display: none;
+    padding: 0 1rem;
+    animation: fadeIn 0.25s ease;
+  }
+  .section.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Direction cards */
+  .direction-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 0;
+    margin-bottom: 0.25rem;
+  }
+
+  .direction-label .arrow {
+    font-size: 1rem;
+  }
+
+  .direction-label .label-text {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .direction-label .dir-icon {
+    margin-left: auto;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    background: var(--surface2);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+  }
+
+  /* Time table grid */
+  .timetable {
+    background: var(--surface);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    margin-bottom: 1.25rem;
+  }
+
+  .tt-row {
+    display: grid;
+    grid-template-columns: 42px 1fr;
+    border-bottom: 1px solid var(--border);
+  }
+  .tt-row:last-child { border-bottom: none; }
+
+  .tt-hour {
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--accent);
+    padding: 0.6rem 0;
+    border-right: 1px solid var(--border);
+    letter-spacing: -0.02em;
+  }
+
+  .tt-times {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    padding: 0.5rem 0.6rem;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  .tt-time {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    min-width: 30px;
+  }
+
+  .tt-min {
+    font-family: 'DM Mono', monospace;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .tt-min.changed {
+    color: var(--changed);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .tt-type {
+    font-size: 0.58rem;
+    color: var(--text-dim);
+    font-weight: 500;
+    line-height: 1;
+  }
+
+  .tt-type.large  { color: var(--large); }
+  .tt-type.medium { color: var(--medium); }
+  .tt-type.micro  { color: var(--micro); }
+
+  .tt-special {
+    font-size: 0.72rem;
+    color: var(--teijicolor);
+    font-weight: 700;
+    padding: 0.15rem 0.4rem;
+    background: rgba(52,211,153,0.12);
+    border-radius: 4px;
+  }
+
+  .tt-unkyu {
+    font-size: 0.72rem;
+    color: var(--unkyu);
+    font-weight: 600;
+    padding: 0.15rem 0.4rem;
+    background: rgba(107,114,128,0.15);
+    border-radius: 4px;
+    text-decoration: line-through;
+  }
+
+  /* Legend */
+  .legend {
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border);
+  }
+
+  .legend-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.5rem;
+  }
+
+  .legend-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+  }
+
+  .legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .legend-dot.large  { background: var(--large); }
+  .legend-dot.medium { background: var(--medium); }
+  .legend-dot.micro  { background: var(--micro); }
+  .legend-dot.changed { background: var(--changed); border-radius: 2px; }
+  .legend-dot.teiji { background: var(--teijicolor); border-radius: 2px; }
+
+  /* Notes */
+  .notes {
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border);
+    margin-bottom: 1rem;
+  }
+
+  .notes-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.5rem;
+  }
+
+  .notes ol {
+    padding-left: 1.2rem;
+  }
+
+  .notes li {
+    font-size: 0.77rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+    margin-bottom: 0.25rem;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 0.5rem 0 1rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="logo">
+      <div class="logo-icon">🚌</div>
+      <div class="logo-text">
+        <strong>久喜事業所 送迎バス</strong>
+        時刻表
+      </div>
+    </div>
+    <div class="badge">2026.4.1 改正</div>
+  </div>
+  <div class="header-sub">業務部通達2026-5 ／ 社外秘</div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="showSection('kukiToOffice')">久喜駅 → 事業所</div>
+  <div class="tab" onclick="showSection('officeToKuki')">事業所 → 久喜駅</div>
+  <div class="tab" onclick="showSection('shiraToOffice')">新白岡駅 → 事業所</div>
+  <div class="tab" onclick="showSection('officeToShira')">事業所 → 新白岡駅</div>
+  <div class="tab" onclick="showSection('notes')">注意事項</div>
+</div>
+
+<!-- 久喜駅 → 事業所 -->
+<div class="section active" id="kukiToOffice">
+  <div class="direction-label">
+    <span class="arrow">🚌</span>
+    <span class="label-text">久喜駅 → 事業所</span>
+    <span class="dir-icon">朝・昼間ダイヤ</span>
+  </div>
+  <div class="timetable">
+    <div class="tt-row">
+      <div class="tt-hour">7</div>
+      <div class="tt-times">
+        <div class="tt-time"><span class="tt-min">05</span><span class="tt-type large">大</span></div>
+        <div class="tt-time"><span class="tt-min changed">20</span><span class="tt-type micro">マ</span></div>
+        <div class="tt-time"><span class="tt-min changed">25</span><span class="tt-type micro">マ</span></div>
+        <div class="tt-time"><span class="tt-min">32</span><span class="tt-type large">大</span></div>
+        <div class="tt-time"><span class="tt-min changed">45</span><span class="tt-type medium">中</span></div>
+        <div class="tt-time"><span class="tt-min changed">53</span><span class="tt-type micro">マ</span></div>
+        <div class="tt-time"><span class="tt-min changed">55</span><span class="tt-type large">大</span></div>
+      </div>
+    </div>
+    <div class="tt-row">
+      <div class="tt-hour">8</div>
+      <div class="tt-times">
+        <div class="tt-time"><span class="tt-min">00</span><span class="tt-type large">大</span></div>
+        <div class="tt-time"><span class="tt-min changed">35</span><span class="tt-type large">大</span></div>
+      </div>
+    </div>
+    <div class="tt-row">
+      <div class="tt-hour">9</div>
+      <div class="tt-times">
+        <div class="tt-time"><span class="tt-min">00</span><span class="tt-type large">大</span></div>
+        <div class="tt-time"><span class="tt-min">30</span><span class="tt-type large">大</span></div>
+      </div>
+    </div>
+    <div class="tt-row">
+      <div class="tt-hour">10</div>
+      <div class="tt-times">
+        <div class="tt-time"><span class="tt-min">00</span><span class="tt-type large">大</span></div>
+        <div class="tt-time"><span class="tt-min">30</span><span class="tt-type large">大</span></div>
+      </div>
+    </div>
+    <div class="tt-row">
+      <div class="tt-hour">11</div>
+      <div class="tt-times">
+        <div class="tt-time"><span class="tt-min">00</span><span class="tt-type large">大</span></div>
+        <div class="tt-time"><span class="tt-min">30</span><span class="tt-type large">大</span></div>
+      </div>
+    </div>
+    <div class="tt-row">
+      <div class="tt-hour">12</div>
+      <div class="tt-times">
+        <div class="tt-time"><span class="tt-min">00</span><span class="tt-type large">大</span></div>
+        <div class="tt-time"><span class="tt-min">30</span><span class="tt-type large">大</span></div>
+      </div>
+    </div>
+    <div class="tt-row">
+      <div class="tt-hour">13</div>
+      <div class="tt-times">
+        <div class="tt-time"><span class="tt-min changed">00</span><span class="tt-type large">大</span></div>
+        <div class="tt-time"><span class="tt-min changed">30</span><span class="tt-type large">大</span></div>
+      </div>
+    </div>
+    <div class="tt-row">
+      <div class="tt-hour">14</div>
+      <div class="tt-times">
+        <div class="tt-time"><span class="tt-min">30</span><span class="tt-type large">大</span></div>
+      </div>
+    </div>
+    <div class="tt-row">
+      <div class="tt-hour">15</div>
+      <div class="tt-times">
+        <div class="tt-time"><span class="tt-min">30</span><span class="tt-type large">大</span></div>
+      </div>
+    </div>
+    <div class="tt-row">
+      <div class="tt-hour">16</div>
+      <div class="tt-times">
+        <div class="tt-time"><span class="tt-min">30</span><span class="tt-type large">大</span></div>
+      </div>
+    </div>
+    <div class="tt-row">
+      <div class="tt-hour">17</div>
+      <div class="tt-times">
+        <div class="tt-time"><span class="tt-min">35</span><span class="tt-type large">大</span></div>
+        <span class="tt-special">定時退社</span>
+        <span class="tt-unkyu">運休</span>
+      </div>
+    </div>
+    <div class="tt-row">
+      <div class="tt-hour">18</div>
+      <div class="tt-times">
+        <em style="font-size:0.75rem;color:var(--text-dim);">運行なし（定時退社日のみ運行）</em>
+      </div>
+    </div>
+    <div class="tt-row">
+      <div class="tt-hour">19</div>
+      <div class="tt-times">
+        <em style="font-size:0.75rem;color:var(--text-dim);">運行なし</em>
+      </div>
+    </div>
+    <div class="tt-row">
+      <div class="tt-hour">20</div>
+      <div class="tt-times">
+        <em style="font-size:0.75rem;color:var(--text-dim);">運行なし</em>
+      </div>
+    </div>
+    <div class="tt-row">
+      <div class="tt-hour">21</div>
+      <div class="tt-times">
+        <em style="font-size:0.75rem;color:var(--text-dim);">運行なし</em>
+      </div>
+    </div>
+  </div>
+  <div class="legend">
+    <div class="legend-title">凡例</div>
+    <div class="legend-items">
+      <div class="legend-item"><div class="legend-dot large"></div>大型車（立ち乗車可）</div>
+      <div class="legend-item"><div class="legend-dot medium"></div>中型車（着席のみ）</div>
+      <div class="legend-item"><div class="legend-dot micro"></div>マイクロバス（着席のみ）</div>
+      <div class="legend-item"><div class="legend-dot changed"></div>今回変更箇所</div>
+      <div class="legend-item"><div class="legend-dot teiji"></div>定時退社日ダイヤあり</div>
+    </div>
+  </div>
+</div>
+
+<!-- 事業所 → 久喜駅 -->
+<div class="section" id="officeToKuki">
+  <div class="direction-label">
+    <span class="arrow">🚌</span>
+    <span class="label-text">事業所 → 久喜駅</span>
+    <span class="dir-icon">帰宅ダイヤ</span>
+  </div>
+  <div class="timetable">
+    <div class="tt-row">
+      <div class="tt-hour">7</div>
+      <div class="tt-times">
+        <div class="tt-time"><span class="tt-min">10</span><span class="tt-type large">大</span></div>
+      </div>
+    </div>
+    <div class="tt-row">
+      <div class="tt-hour">8</div>
+      <div class="tt-times">
+        <div class="tt-time"><span class="tt-min">40</span><span class="tt-type large">大</span></div>
+      </div>
+    </div>
+    <div class="tt-row">
+      <div class="tt-hour">9</div>
+      <div class="tt-times">
+        <div class="tt-time"><span class="tt-min">10</span><span class="tt-type large">大</span></div>
+        <div class="tt-time"><span class="tt-min">40</span><span class="tt-type large">大</span></div>
+      </div>
+    </div>
+    <div class="tt-row">
+      <div class="tt-hour">10</div>
+      <div class="tt-times">
+        <div class="tt-time"><span class="tt-min">10</span><span class="tt-type large">大</span></div>
+        <div class="tt-time"><span class="tt-min">40</span><span class="tt-type large">大</span></div>
+      </div>
+    </div>
+    <div class="tt-row">
+      <div class="tt-hour">11</div>
+      <div class="tt-times">
+        <div class="tt-time"><span class="tt-min">10</span><span class="tt-type large">大</span></div>
+        <div class="tt-time"><span class="tt-min">40</span><span class="tt-type large">大</span></div>
+      </div>
+    </div>
+    <div class="tt-row">
+      <div class="tt-hour">12</div>
+      <div class="tt-times">
+        <div class="tt-time"><span class="tt-min changed">10</span><span class="tt-type large">大</span></div>
+        <div class="tt-time"><span class="tt-min changed">40</span><span class="tt-type large">大</span></div>
+      </div>
+    </div>
+    <div class="tt-row">
+      <div class="tt-hour">13</div>
+      <div class="tt-times">
+        <div class="tt-time"><span class="tt-min">12</span><span class="tt-type large">大</span></div>
+      </div>
+    </div>
+    <div class="tt-row">
+      <div class="tt-hour">14</div>
+      <div class="tt-times">
+        <div class="tt-time"><span class="tt-min">12</span><span class="tt-type large">大</span></div>
+      </div>
+    </div>
+    <div class="tt-row">
+      <div class="tt-hour">15</div>
+      <div class="tt-times">
+        <div class="tt-time"><span class="tt-min">12</span><span class="tt-type large">大</span></div>
+      </div>
+    </div>
+    <div class="tt-row">
+      <div class="tt-hour">16</div>
+      <div class="tt-times">
+        <div class="tt-time"><span class="tt-min">12</span><span class="tt-type large">大</span></div>
+        <div class="tt-time"><span class="tt-min changed">42</span><span class="tt-type large">大</span></div>
+      </div>
+    </div>
+    <div class="tt-row">
+      <div class="tt-hour">17</div>
+      <div class="tt-times">
+        <div class="tt-time"><span class="tt-min">15</span><span class="tt-type medium">中</span></div>
+        <div class="tt-time"><span class="tt-min">15</span><span class="tt-type large">大</span></div>
+        <div class="tt-time"><span class="tt-min changed">35</span><span class="tt-type large">大</span></div>
+        <div class="tt-time"><span class="tt-min">55</span><span class="tt-type large">大</span></div>
+        <span class="tt-special">定時退社</span>
+        <div class="tt-time"><span class="tt-min">25</span><span class="tt-type medium">中</span></div>
+        <div class="tt-time"><span class="tt-min">35</span><span class="tt-type large">大</span></div>
+      </div>
+    </div>
+    <div class="tt-row">
+      <div class="tt-hour">18</div>
+      <div class="tt-times">
+        <div class="tt-time"><span class="tt-min">12</span><span class="tt-type large">大</span></div>
+        <div class="tt-time"><span class="tt-min">35</span><span class="tt-type large">大</span></div>
+        <span class="tt-special">定時退社</span>
+        <div class="tt-time"><span class="tt-min">00</span><span class="tt-type large">大</span></div>
+        <div class="tt-time"><span class="tt-min">35</span><span class="tt-type large">大</span></div>
+      </div>
+    </div>
+    <div class="tt-row">
+      <div class="tt-hour">19</div>
+      <div class="tt-times">
+        <div class="tt-time"><span class="tt-min">12</span><span class="tt-type large">大</span></div>
+        <div class="tt-time"><span class="tt-min">35</span><span class="tt-type large">大</span></div>
+        <div class="tt-time"><span class="tt-min">45</span><span class="tt-type large">大</span></div>
+        <span class="tt-special">定時退社</span>
+      </div>
+    </div>
+    <div class="tt-row">
+      <div class="tt-hour">20</div>
+      <div class="tt-times">
+        <div class="tt-time"><span class="tt-min">12</span><span class="tt-type large">大</span></div>
+        <div class="tt-time"><span class="tt-min">30</span><span class="tt-type large">大</span></div>
+        <span class="tt-special">定時退社</span>
+        <span class="tt-unkyu">運休</span>
+      </div>
+    </div>
+    <div class="tt-row">
+      <div class="tt-hour">21</div>
+      <div class="tt-times">
+        <div class="tt-time"><span class="tt-min">07</span><span class="tt-type large">大</span></div>
+        <span class="tt-special">定時退社</span>
+      </div>
+    </div>
+  </div>
+  <div class="legend">
+    <div class="legend-title">凡例</div>
+    <div class="legend-items">
+      <div class="legend-item"><div class="legend-dot large"></div>大型車（立ち乗車可）</div>
+      <div class="legend-item"><div class="legend-dot medium"></div>中型車（着席のみ）</div>
+      <div class="legend-item"><div class="legend-dot micro"></div>マイクロバス（着席のみ）</div>
+      <div class="legend-item"><div class="legend-dot changed"></div>今回変更箇所</div>
+      <div class="legend-item"><div class="legend-dot teiji"></div>定時退社日ダイヤ</div>
+    </div>
+  </div>
+  <p style="font-size:0.72rem;color:var(--text-dim);padding-bottom:0.5rem;">※定時退社日ダイヤ欄の時刻は、毎週水・金曜日（ノー残業デー）に適用されます。</p>
+</div>
+
+<!-- 新白岡駅 → 事業所 -->
+<div class="section" id="shiraToOffice">
+  <div class="direction-label">
+    <span class="arrow">🚌</span>
+    <span class="label-text">新白岡駅 → 事業所</span>
+    <span class="dir-icon">朝・夜間ダイヤ</span>
+  </div>
+  <div class="timetable">
+    <div class="tt-row">
+      <div class="tt-hour">7</div>
+      <div class="tt-times">
+        <div class="tt-time"><span class="tt-min">13</span><span class="tt-type large">大</span></div>
+        <div class="tt-time"><span class="tt-min">23</span><span class="tt-type large">大</span></div>
+        <div class="tt-time"><span class="tt-min changed">46</span><span class="tt-type medium">中</span></div>
+        <div class="tt-time"><span class="tt-min">47</span><span class="tt-type large">大</span></div>
+      </div>
+    </div>
+    <div class="tt-row">
+      <div class="tt-hour">8</div>
+      <div class="tt-times">
+        <div class="tt-time"><span class="tt-min">04</span><span class="tt-type micro">マ</span></div>
+        <div class="tt-time"><span class="tt-min">05</span><span class="tt-type large">大</span></div>
+      </div>
+    </div>
+    <div class="tt-row">
+      <div class="tt-hour">17</div>
+      <div class="tt-times">
+        <div class="tt-time"><span class="tt-min">25</span><span class="tt-type micro">マ</span></div>
+        <span class="tt-special">定時退社</span>
+        <div class="tt-time"><span class="tt-min">25</span><span class="tt-type micro">マ</span></div>
+      </div>
+    </div>
+    <div class="tt-row">
+      <div class="tt-hour">18</div>
+      <div class="tt-times">
+        <div class="tt-time"><span class="tt-min">30</span><span class="tt-type large">大</span></div>
+        <span class="tt-special">定時退社</span>
+        <div class="tt-time"><span class="tt-min">30</span><span class="tt-type large">大</span></div>
+      </div>
+    </div>
+    <div class="tt-row">
+      <div class="tt-hour">19</div>
+      <div class="tt-times">
+        <span class="tt-special">定時退社</span>
+        <span class="tt-unkyu">運休</span>
+      </div>
+    </div>
+  </div>
+  <div class="legend">
+    <div class="legend-title">凡例</div>
+    <div class="legend-items">
+      <div class="legend-item"><div class="legend-dot large"></div>大型車（立ち乗車可）</div>
+      <div class="legend-item"><div class="legend-dot medium"></div>中型車（着席のみ）</div>
+      <div class="legend-item"><div class="legend-dot micro"></div>マイクロバス（着席のみ）</div>
+      <div class="legend-item"><div class="legend-dot changed"></div>今回変更箇所</div>
+    </div>
+  </div>
+  <p style="font-size:0.72rem;color:var(--text-dim);padding-bottom:0.5rem;">※JR宇都宮線下り列車との接続を考慮していますが、列車遅延時は接続できない場合があります。</p>
+</div>
+
+<!-- 事業所 → 新白岡駅 -->
+<div class="section" id="officeToShira">
+  <div class="direction-label">
+    <span class="arrow">🚌</span>
+    <span class="label-text">事業所 → 新白岡駅</span>
+    <span class="dir-icon">帰宅ダイヤ</span>
+  </div>
+  <div class="timetable">
+    <div class="tt-row">
+      <div class="tt-hour">7</div>
+      <div class="tt-times">
+        <em style="font-size:0.75rem;color:var(--text-dim);">運行なし</em>
+      </div>
+    </div>
+    <div class="tt-row">
+      <div class="tt-hour">8</div>
+      <div class="tt-times">
+        <em style="font-size:0.75rem;color:var(--text-dim);">運行なし</em>
+      </div>
+    </div>
+    <div class="tt-row">
+      <div class="tt-hour">17</div>
+      <div class="tt-times">
+        <div class="tt-time"><span class="tt-min">15</span><span class="tt-type micro">マ</span></div>
+        <div class="tt-time"><span class="tt-min">35</span><span class="tt-type large">大</span></div>
+        <div class="tt-time"><span class="tt-min">55</span><span class="tt-type micro">マ</span></div>
+        <span class="tt-special">定時退社</span>
+        <div class="tt-time"><span class="tt-min">15</span><span class="tt-type micro">マ</span></div>
+        <div class="tt-time"><span class="tt-min">20</span><span class="tt-type large">大</span></div>
+        <div class="tt-time"><span class="tt-min changed">55</span><span class="tt-type micro">マ</span></div>
+      </div>
+    </div>
+    <div class="tt-row">
+      <div class="tt-hour">18</div>
+      <div class="tt-times">
+        <div class="tt-time"><span class="tt-min">30</span><span class="tt-type large">大</span></div>
+        <div class="tt-time"><span class="tt-min">30</span><span class="tt-type large">大</span></div>
+        <span class="tt-special">定時退社</span>
+        <div class="tt-time"><span class="tt-min">12</span><span class="tt-type large">大</span></div>
+        <div class="tt-time"><span class="tt-min">55</span><span class="tt-type large">大</span></div>
+      </div>
+    </div>
+    <div class="tt-row">
+      <div class="tt-hour">19</div>
+      <div class="tt-times">
+        <div class="tt-time"><span class="tt-min">12</span><span class="tt-type large">大</span></div>
+        <span class="tt-special">定時退社</span>
+        <span class="tt-unkyu">運休</span>
+      </div>
+    </div>
+  </div>
+  <div class="legend">
+    <div class="legend-title">凡例</div>
+    <div class="legend-items">
+      <div class="legend-item"><div class="legend-dot large"></div>大型車（立ち乗車可）</div>
+      <div class="legend-item"><div class="legend-dot medium"></div>中型車（着席のみ）</div>
+      <div class="legend-item"><div class="legend-dot micro"></div>マイクロバス（着席のみ）</div>
+      <div class="legend-item"><div class="legend-dot changed"></div>今回変更箇所</div>
+    </div>
+  </div>
+</div>
+
+<!-- 注意事項 -->
+<div class="section" id="notes">
+  <div class="direction-label">
+    <span class="arrow">📋</span>
+    <span class="label-text">注意事項</span>
+  </div>
+  <div class="notes">
+    <div class="notes-title">乗車ルール・案内</div>
+    <ol>
+      <li>毎週<strong>水曜日・金曜日</strong>はノー残業デーです。17時以降は「定時退社日ダイヤ」で運転します。</li>
+      <li>満員の場合は、<strong>定刻より前に出発</strong>することがあります。</li>
+      <li>朝通勤時間帯の新白岡駅発は、JR宇都宮線下り列車（宇都宮方面）との接続を考慮していますが、列車遅延等が発生した際は接続できない場合があります。ご了承ください。</li>
+      <li>通路・道路等は走らないでください。停留所では、通行人の妨げにならないよう<strong>車道側に詰めて並んで</strong>ください。</li>
+      <li>バス車内は<strong>飲食禁止</strong>です。ゴミは車内に放置せずお持ち帰りください。</li>
+      <li>異常事態時におけるバス発着は、<strong>久喜駅のみ</strong>となります。</li>
+    </ol>
+  </div>
+
+  <div class="notes" style="margin-top:0.75rem;">
+    <div class="notes-title">車両タイプについて</div>
+    <div style="display:flex;flex-direction:column;gap:0.5rem;margin-top:0.25rem;">
+      <div style="display:flex;align-items:center;gap:0.75rem;">
+        <span style="font-size:0.75rem;color:var(--large);font-weight:700;min-width:40px;">大型車</span>
+        <span style="font-size:0.77rem;color:var(--text-dim);">立ち乗車可。混雑時でも乗車できます。</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.75rem;">
+        <span style="font-size:0.75rem;color:var(--medium);font-weight:700;min-width:40px;">中型車</span>
+        <span style="font-size:0.77rem;color:var(--text-dim);">着席のみ。満席の場合は次の便をご利用ください。</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.75rem;">
+        <span style="font-size:0.75rem;color:var(--micro);font-weight:700;min-width:40px;">マイクロ</span>
+        <span style="font-size:0.77rem;color:var(--text-dim);">着席のみ。座席数が少ないためご注意ください。</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:1rem;padding:0.75rem 1rem;background:var(--surface);border-radius:10px;border:1px solid var(--border);">
+    <div style="font-size:0.7rem;color:var(--text-dim);line-height:1.6;">
+      📌 (久)業務部通達2026-5　2026年3月25日発行<br>
+      久喜事業所 業務部　／　2026年4月1日改正<br>
+      <span style="color:var(--accent2);font-weight:700;">社外秘 - 社内利用限定</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  function showSection(id) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    event.target.classList.add('active');
+  }
+</script>
+</body>
+</html>
